@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Club {
+  id          Int           @id @default(autoincrement())
+  name        String
+  Competiteur Competiteur[] @relation("ClubCompetitors", fields: [], references: [])
+
+  @@map("club")
+}
+
+model Pays {
+  id           Int           @id @default(autoincrement())
+  name         String
+  alpha3       String?
+  numeric      String?
+  Competiteur  Competiteur[] @relation("CountryCompetitors", fields: [], references: [])
+  Tournoi      Tournoi[]     @relation("CountryTournois",    fields: [], references: [])
+
+  @@map("pays")
+}
+
+model Grade {
+  id           Int           @id @default(autoincrement())
+  name         String
+  Competiteur  Competiteur[] @relation("GradeCompetitors", fields: [], references: [])
+
+  @@map("grade")
+}
+
+model Categorie {
+  id          Int       @id @default(autoincrement())
+  nom         String
+  ageMin      Int?
+  ageMax      Int?
+  poidsMin    Float?
+  poidsMax    Float?
+  sexe        String?   @db.Char(1)
+  Tournoi     Tournoi[] @relation("CategorieTournois", fields: [], references: [])
+
+  @@map("categorie")
+}
+
+model Tournoi {
+  id                 Int       @id @default(autoincrement())
+  nom                String
+  date_debut         DateTime? @db.Date
+  date_fin           DateTime? @db.Date
+  lieu               String?
+  systemeElimination String?   @db.Char(30)
+  id_categorie       Int?
+  id_pays            Int?
+  Categorie          Categorie? @relation("CategorieTournois", fields: [id_categorie], references: [id])
+  Pays               Pays?      @relation("CountryTournois",    fields: [id_pays],      references: [id])
+  Poule              Poule[]
+  Match              Match[]
+
+  @@map("tournoi")
+}
+
+model Poule {
+  id                Int        @id @default(autoincrement())
+  ListeCompetiteurs Json
+  id_tournoi        Int?
+  Tournoi           Tournoi?   @relation(fields: [id_tournoi], references: [id])
+  Match             Match[]
+
+  @@map("poule")
+}
+
+model Competiteur {
+  id             Int       @id @default(autoincrement())
+  id_country     Int?
+  id_club        Int?
+  id_grade       Int?
+  firstname      String
+  surname        String
+  birthday  String?   @db.VarChar(10)  // conserve le format 'YYYY-MM-DD'
+  sex            String?   @db.Char(1)
+  weight         Float?
+  Pays           Pays?     @relation("CountryCompetitors", fields: [id_country], references: [id])
+  Club           Club?     @relation("ClubCompetitors",    fields: [id_club],    references: [id])
+  Grade          Grade?    @relation("GradeCompetitors",   fields: [id_grade],   references: [id])
+  Match1         Match[]   @relation("MatchCompetitor1")
+  Match2         Match[]   @relation("MatchCompetitor2")
+
+  @@map("competiteur")
+}
+
+model Match {
+  id                   Int         @id @default(autoincrement())
+  id_tournoi           Int
+  id_poule             Int?
+  id_competiteur1      Int
+  id_competiteur2      Int
+  score1               Int         @default(0)
+  score2               Int         @default(0)
+  keikoku_competiteur1 Int         @default(0)
+  keikoku_competiteur2 Int         @default(0)
+  is_finished          Boolean     @default(false)
+  Tournoi              Tournoi     @relation(fields: [id_tournoi],      references: [id])
+  Poule                Poule?      @relation(fields: [id_poule],        references: [id])
+  Competiteur1         Competiteur @relation("MatchCompetitor1", fields: [id_competiteur1], references: [id])
+  Competiteur2         Competiteur @relation("MatchCompetitor2", fields: [id_competiteur2], references: [id])
+
+  @@map("match")
+}
