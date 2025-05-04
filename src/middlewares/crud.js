@@ -21,15 +21,15 @@ export function createOne(modelName) {
  * Récupère tous les enregistrements d’un modèle Prisma.
  */
 export function getAll(modelName) {
-	return async (req, res, next) => {
-	  try {
-		const items = await prisma[modelName].findMany()
-		res.status(200).json(items)
-	  } catch (err) {
-		next(err)
-	  }
-	}
+  return async (req, res, next) => {
+    try {
+      const items = await prisma[modelName].findMany()
+      res.status(200).json(items)
+    } catch (err) {
+      next(err)
+    }
   }
+}
 
 /**
  * Récupère un enregistrement par son ID.
