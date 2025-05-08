@@ -41,7 +41,7 @@ model Categorie {
   ageMax      Int?
   poidsMin    Float?
   poidsMax    Float?
-  sexe        String?   @db.Char(1)
+  sexe        String?   @db.Char(30)
   Tournoi     Tournoi[] @relation("CategorieTournois", fields: [], references: [])
 
   @@map("categorie")
@@ -50,8 +50,8 @@ model Categorie {
 model Tournoi {
   id                 Int       @id @default(autoincrement())
   nom                String
-  date_debut         DateTime? @db.Date
-  date_fin           DateTime? @db.Date
+  date_debut         String?   @db.VarChar(10)
+  date_fin           String?   @db.VarChar(10)
   lieu               String?
   systemeElimination String?   @db.Char(30)
   id_categorie       Int?
@@ -75,20 +75,32 @@ model Poule {
 }
 
 model Competiteur {
-  id             Int       @id @default(autoincrement())
+  id             Int         @id @default(autoincrement())
+  email          String      @unique
+  firstname      String
+  surname        String
+  birthday       String?     @db.VarChar(10)  // format 'YYYY-MM-DD'
+  sex            String?     @db.Char(1)
+  weight         Float?
+
+  // Clés étrangères existantes
   id_country     Int?
   id_club        Int?
   id_grade       Int?
-  firstname      String
-  surname        String
-  birthday  String?   @db.VarChar(10)  // conserve le format 'YYYY-MM-DD'
-  sex            String?   @db.Char(1)
-  weight         Float?
-  Pays           Pays?     @relation("CountryCompetitors", fields: [id_country], references: [id])
-  Club           Club?     @relation("ClubCompetitors",    fields: [id_club],    references: [id])
-  Grade          Grade?    @relation("GradeCompetitors",   fields: [id_grade],   references: [id])
-  Match1         Match[]   @relation("MatchCompetitor1")
-  Match2         Match[]   @relation("MatchCompetitor2")
+
+  // Relation vers Pays, Club et Grade
+  Pays           Pays?       @relation("CountryCompetitors", fields: [id_country], references: [id])
+  Club           Club?       @relation("ClubCompetitors",    fields: [id_club],    references: [id])
+  Grade          Grade?      @relation("GradeCompetitors",   fields: [id_grade],   references: [id])
+
+  // Relations vers Match
+  Match1         Match[]     @relation("MatchCompetitor1")
+  Match2         Match[]     @relation("MatchCompetitor2")
+
+  
+  // Un compétiteur peut être lié à un utilisateur (1:1)
+  User      User?     @relation("UserCompetiteur", fields: [userId], references: [id])
+  userId         Int?        @unique
 
   @@map("competiteur")
 }
@@ -110,4 +122,34 @@ model Match {
   Competiteur2         Competiteur @relation("MatchCompetitor2", fields: [id_competiteur2], references: [id])
 
   @@map("match")
+}
+
+model User {
+  id             Int           @id @default(autoincrement())
+  email          String        @unique
+  password       String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  // Relations vers rôles
+  userRoles      UserRole[]
+
+  // Relation inverse vers Competiteur (lié par Competiteur.userId)
+  Competiteur  Competiteur?  @relation("UserCompetiteur")
+  @@map("user")
+}
+
+model Role {
+  id        Int         @id @default(autoincrement())
+  name      String      @unique
+  userRoles UserRole[]
+}
+
+model UserRole {
+  user   User  @relation(fields: [userId], references: [id])
+  userId Int
+  role   Role  @relation(fields: [roleId], references: [id])
+  roleId Int
+
+  @@id([userId, roleId])
 }
