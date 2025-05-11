@@ -9,25 +9,25 @@ const router = express.Router()
 const table = 'competiteur'
 
 // 1) Profil du compétiteur connecté (upsert ou find)
-router.get(
-  '/mon-profil',
-  authenticate,
-  async (req, res, next) => {
-    try {
-      const userId = req.user.userId ?? req.user.id
-      const comp = await prisma.competiteur.findUnique({
-        where: { userId },
-        include: { Club: true, Pays: true, Grade: true }
-      })
-      if (!comp) {
-        return res.status(404).json({ message: 'Pas de profil compétiteur lié.' })
+router.get('/mon-profil', authenticate, async (req, res, next) => {
+  try {
+    const userId = req.user.userId
+    const competiteur = await prisma.competiteur.findUnique({
+      where: { userId },
+      include: {
+        pays:  { select: { id: true, name: true } },
+        club:  { select: { id: true, name: true } },
+        grade: { select: { id: true, name: true } }
       }
-      res.json(comp)
-    } catch (err) {
-      next(err)
+    })
+    if (!competiteur) {
+      return res.status(404).json({ message: 'Compétiteur non trouvé' })
     }
+    res.json(competiteur)
+  } catch (err) {
+    next(err)
   }
-)
+})
 
 // 2) Matchs du compétiteur connecté
 router.get(
@@ -46,8 +46,8 @@ router.get(
       const matchs = await prisma.match.findMany({
         where: {
           OR: [
-            { id_competiteur1: comp.id },
-            { id_competiteur2: comp.id }
+            { competitor1Id: comp.id },
+            { competitor2Id: comp.id }
           ]
         }
       })

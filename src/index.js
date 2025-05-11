@@ -6,7 +6,11 @@ import authRoutes        from './routes/auth.js'
 import competiteurRoutes from './routes/competiteur.js'
 import matchRoutes       from './routes/match.js'
 import tournoiRoutes     from './routes/tournoi.js'
-import clubRoutes        from './routes/club.js'   
+import clubRoutes        from './routes/club.js'
+import profileRoutes     from './routes/profile.js'
+import gradeRoutes       from './routes/grade.js'
+import paysRoutes        from './routes/pays.js'
+import categorieRoutes   from './routes/categorie.js'
 
 const app = express()
 const PORT = process.env.PORT
@@ -26,6 +30,10 @@ app.use('/competiteur', competiteurRoutes)
 app.use('/match',       matchRoutes)
 app.use('/tournoi',     tournoiRoutes)
 app.use('/club',        clubRoutes)
+app.use('/profile',     profileRoutes)
+app.use('/grade',       gradeRoutes)
+app.use('/pays',        paysRoutes)
+app.use('/categorie',   categorieRoutes)
 
 testBDD()
 

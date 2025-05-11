@@ -1,4 +1,3 @@
-// src/routes/club.js
 import express from 'express'
 import {
   createOne,
@@ -10,13 +9,30 @@ import {
 import { validerDonnee } from '../middlewares/verification.js'
 
 const router = express.Router()
-const tableName = 'Club'
+const tableName = 'club'  // doit correspondre à ta table « club »
 
-// Routes CRUD « relatives »
-router.get('/',        getAll(tableName))
-router.get('/:id',     getOneByID(tableName))
-router.post('/',       validerDonnee(['nom']), createOne(tableName))
-router.put('/:id',     validerDonnee(['nom']), updateByID(tableName))
-router.delete('/:id',  deleteByID(tableName))
+// CRUD des clubs
+router.post(
+  '/',
+  validerDonnee(['name']),  // on attend { name: string }
+  createOne(tableName)
+)
+router.get(
+  '/',
+  getAll(tableName)
+)
+router.get(
+  '/:id',
+  getOneByID(tableName)
+)
+router.put(
+  '/:id',
+  validerDonnee(['name']),
+  updateByID(tableName)
+)
+router.delete(
+  '/:id',
+  deleteByID(tableName)
+)
 
 export default router

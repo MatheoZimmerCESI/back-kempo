@@ -63,14 +63,17 @@ CREATE TABLE "poule" (
 -- CreateTable
 CREATE TABLE "competiteur" (
     "id" SERIAL NOT NULL,
-    "id_country" INTEGER,
-    "id_club" INTEGER,
-    "id_grade" INTEGER,
+    "email" TEXT NOT NULL,
     "firstname" TEXT NOT NULL,
     "surname" TEXT NOT NULL,
     "birthday" VARCHAR(10),
     "sex" CHAR(1),
     "weight" DOUBLE PRECISION,
+    "id_country" INTEGER,
+    "id_club" INTEGER,
+    "id_grade" INTEGER,
+    "userId" INTEGER,
+    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "competiteur_pkey" PRIMARY KEY ("id")
 );
@@ -92,22 +95,24 @@ CREATE TABLE "match" (
 );
 
 -- CreateTable
-CREATE TABLE "User" (
+CREATE TABLE "user" (
     "id" SERIAL NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "deletedAt" TIMESTAMP(3),
 
-    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "user_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Role" (
+CREATE TABLE "role" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
 
-    CONSTRAINT "Role_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "role_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -118,11 +123,34 @@ CREATE TABLE "UserRole" (
     CONSTRAINT "UserRole_pkey" PRIMARY KEY ("userId","roleId")
 );
 
--- CreateIndex
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+-- CreateTable
+CREATE TABLE "PasswordReset" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "token" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "PasswordReset_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
+CREATE UNIQUE INDEX "competiteur_email_key" ON "competiteur"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "competiteur_userId_key" ON "competiteur"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "role_name_key" ON "role"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PasswordReset_userId_key" ON "PasswordReset"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PasswordReset_token_key" ON "PasswordReset"("token");
 
 -- AddForeignKey
 ALTER TABLE "tournoi" ADD CONSTRAINT "tournoi_id_categorie_fkey" FOREIGN KEY ("id_categorie") REFERENCES "categorie"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -143,6 +171,9 @@ ALTER TABLE "competiteur" ADD CONSTRAINT "competiteur_id_club_fkey" FOREIGN KEY 
 ALTER TABLE "competiteur" ADD CONSTRAINT "competiteur_id_grade_fkey" FOREIGN KEY ("id_grade") REFERENCES "grade"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "competiteur" ADD CONSTRAINT "competiteur_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "match" ADD CONSTRAINT "match_id_tournoi_fkey" FOREIGN KEY ("id_tournoi") REFERENCES "tournoi"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -155,7 +186,10 @@ ALTER TABLE "match" ADD CONSTRAINT "match_id_competiteur1_fkey" FOREIGN KEY ("id
 ALTER TABLE "match" ADD CONSTRAINT "match_id_competiteur2_fkey" FOREIGN KEY ("id_competiteur2") REFERENCES "competiteur"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "UserRole" ADD CONSTRAINT "UserRole_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "UserRole" ADD CONSTRAINT "UserRole_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "UserRole" ADD CONSTRAINT "UserRole_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "UserRole" ADD CONSTRAINT "UserRole_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PasswordReset" ADD CONSTRAINT "PasswordReset_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;

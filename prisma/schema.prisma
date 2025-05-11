@@ -8,148 +8,150 @@ datasource db {
 }
 
 model Club {
-  id          Int           @id @default(autoincrement())
-  name        String
-  Competiteur Competiteur[] @relation("ClubCompetitors", fields: [], references: [])
-
+  id           Int           @id @default(autoincrement()) @map("id")
+  name         String        @map("name")
+  competitors  Competiteur[] @relation("ClubCompetitors")
   @@map("club")
 }
 
 model Pays {
-  id           Int           @id @default(autoincrement())
-  name         String
-  alpha3       String?
-  numeric      String?
-  Competiteur  Competiteur[] @relation("CountryCompetitors", fields: [], references: [])
-  Tournoi      Tournoi[]     @relation("CountryTournois",    fields: [], references: [])
-
+  id           Int           @id @default(autoincrement()) @map("id")
+  name         String        @map("name")
+  alpha3       String?       @map("alpha3")
+  numeric      String?       @map("numeric")
+  competitors  Competiteur[] @relation("CountryCompetitors")
+  tournaments  Tournoi[]     @relation("CountryTournois")
   @@map("pays")
 }
 
 model Grade {
-  id           Int           @id @default(autoincrement())
-  name         String
-  Competiteur  Competiteur[] @relation("GradeCompetitors", fields: [], references: [])
-
+  id           Int           @id @default(autoincrement()) @map("id")
+  name         String        @map("name")
+  competitors  Competiteur[] @relation("GradeCompetitors")
   @@map("grade")
 }
 
 model Categorie {
-  id          Int       @id @default(autoincrement())
-  nom         String
-  ageMin      Int?
-  ageMax      Int?
-  poidsMin    Float?
-  poidsMax    Float?
-  sexe        String?   @db.Char(30)
-  Tournoi     Tournoi[] @relation("CategorieTournois", fields: [], references: [])
-
+  id       Int       @id @default(autoincrement())         @map("id")
+  nom      String    @map("nom")
+  ageMin   Int?      @map("ageMin")
+  ageMax   Int?      @map("ageMax")
+  poidsMin Float?    @map("poidsMin")
+  poidsMax Float?    @map("poidsMax")
+  sexe     String?   @db.Char(30)                          @map("sexe")
+  tournois Tournoi[] @relation("CategorieTournois")
   @@map("categorie")
 }
 
 model Tournoi {
-  id                 Int       @id @default(autoincrement())
-  nom                String
-  date_debut         String?   @db.VarChar(10)
-  date_fin           String?   @db.VarChar(10)
-  lieu               String?
-  systemeElimination String?   @db.Char(30)
-  id_categorie       Int?
-  id_pays            Int?
-  Categorie          Categorie? @relation("CategorieTournois", fields: [id_categorie], references: [id])
-  Pays               Pays?      @relation("CountryTournois",    fields: [id_pays],      references: [id])
-  Poule              Poule[]
-  Match              Match[]
-
+  id                   Int          @id @default(autoincrement()) @map("id")
+  nom                  String       @map("nom")
+  dateDebut            String?      @db.VarChar(10)               @map("date_debut")
+  dateFin              String?      @db.VarChar(10)               @map("date_fin")
+  lieu                 String?      @map("lieu")
+  systemeElimination   String?      @db.Char(30)                  @map("systemeElimination")
+  categorieId          Int?         @map("id_categorie")
+  countryId            Int?         @map("id_pays")
+  categorie            Categorie?   @relation("CategorieTournois", fields: [categorieId], references: [id])
+  pays                 Pays?        @relation("CountryTournois",   fields: [countryId],   references: [id])
+  poules               Poule[]
+  matchs               Match[]
   @@map("tournoi")
 }
 
 model Poule {
-  id                Int        @id @default(autoincrement())
-  ListeCompetiteurs Json
-  id_tournoi        Int?
-  Tournoi           Tournoi?   @relation(fields: [id_tournoi], references: [id])
-  Match             Match[]
-
+  id                Int      @id @default(autoincrement()) @map("id")
+  listeCompetiteurs Json     @map("ListeCompetiteurs")
+  tournoiId         Int?     @map("id_tournoi")
+  tournoi           Tournoi? @relation(fields: [tournoiId], references: [id])
+  matchs            Match[]
   @@map("poule")
 }
 
 model Competiteur {
-  id             Int         @id @default(autoincrement())
-  email          String      @unique
-  firstname      String
-  surname        String
-  birthday       String?     @db.VarChar(10)  // format 'YYYY-MM-DD'
-  sex            String?     @db.Char(1)
-  weight         Float?
+  id           Int         @id @default(autoincrement()) @map("id")
+  email        String      @unique                       @map("email")
+  firstname    String      @map("firstname")
+  surname      String      @map("surname")
+  birthday     String?     @db.VarChar(10)               @map("birthday")
+  sex          String?     @db.Char(1)                   @map("sex")
+  weight       Float?      @map("weight")
 
-  // Clés étrangères existantes
-  id_country     Int?
-  id_club        Int?
-  id_grade       Int?
+  countryId    Int?        @map("id_country")
+  clubId       Int?        @map("id_club")
+  gradeId      Int?        @map("id_grade")
+  pays         Pays?       @relation("CountryCompetitors", fields: [countryId], references: [id])
+  club         Club?       @relation("ClubCompetitors",    fields: [clubId],    references: [id])
+  grade        Grade?      @relation("GradeCompetitors",   fields: [gradeId],   references: [id])
 
-  // Relation vers Pays, Club et Grade
-  Pays           Pays?       @relation("CountryCompetitors", fields: [id_country], references: [id])
-  Club           Club?       @relation("ClubCompetitors",    fields: [id_club],    references: [id])
-  Grade          Grade?      @relation("GradeCompetitors",   fields: [id_grade],   references: [id])
+  match1       Match[]     @relation("MatchCompetitor1")
+  match2       Match[]     @relation("MatchCompetitor2")
 
-  // Relations vers Match
-  Match1         Match[]     @relation("MatchCompetitor1")
-  Match2         Match[]     @relation("MatchCompetitor2")
+  user         User?       @relation("UserCompetiteur",    fields: [userId],    references: [id])
+  userId       Int?        @unique                       @map("userId")
 
-  
-  // Un compétiteur peut être lié à un utilisateur (1:1)
-  User      User?     @relation("UserCompetiteur", fields: [userId], references: [id])
-  userId         Int?        @unique
+  deletedAt    DateTime?   @map("deletedAt")   // soft-delete flag
 
   @@map("competiteur")
 }
 
 model Match {
-  id                   Int         @id @default(autoincrement())
-  id_tournoi           Int
-  id_poule             Int?
-  id_competiteur1      Int
-  id_competiteur2      Int
-  score1               Int         @default(0)
-  score2               Int         @default(0)
-  keikoku_competiteur1 Int         @default(0)
-  keikoku_competiteur2 Int         @default(0)
-  is_finished          Boolean     @default(false)
-  Tournoi              Tournoi     @relation(fields: [id_tournoi],      references: [id])
-  Poule                Poule?      @relation(fields: [id_poule],        references: [id])
-  Competiteur1         Competiteur @relation("MatchCompetitor1", fields: [id_competiteur1], references: [id])
-  Competiteur2         Competiteur @relation("MatchCompetitor2", fields: [id_competiteur2], references: [id])
-
+  id                      Int         @id @default(autoincrement()) @map("id")
+  tournoiId               Int         @map("id_tournoi")
+  pouleId                 Int?        @map("id_poule")
+  competitor1Id           Int         @map("id_competiteur1")
+  competitor2Id           Int         @map("id_competiteur2")
+  score1                  Int         @default(0)                  @map("score1")
+  score2                  Int         @default(0)                  @map("score2")
+  keikokuCompetiteur1     Int         @default(0)                  @map("keikoku_competiteur1")
+  keikokuCompetiteur2     Int         @default(0)                  @map("keikoku_competiteur2")
+  isFinished              Boolean     @default(false)              @map("is_finished")
+  tournoi                 Tournoi     @relation(fields: [tournoiId], references: [id])
+  poule                   Poule?      @relation(fields: [pouleId],   references: [id])
+  competiteur1            Competiteur @relation("MatchCompetitor1", fields: [competitor1Id], references: [id])
+  competiteur2            Competiteur @relation("MatchCompetitor2", fields: [competitor2Id], references: [id])
   @@map("match")
 }
 
 model User {
-  id             Int           @id @default(autoincrement())
-  email          String        @unique
-  password       String
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id            Int            @id @default(autoincrement()) @map("id")
+  email         String         @unique                       @map("email")
+  password      String         @map("password")
+  createdAt     DateTime       @default(now())               @map("createdAt")
+  updatedAt     DateTime       @updatedAt                    @map("updatedAt")
 
-  // Relations vers rôles
-  userRoles      UserRole[]
+  // account status
+  isActive      Boolean        @default(true)                @map("isActive")
+  deletedAt     DateTime?                                   @map("deletedAt")
 
-  // Relation inverse vers Competiteur (lié par Competiteur.userId)
-  Competiteur  Competiteur?  @relation("UserCompetiteur")
+  userRoles     UserRole[]
+  competiteur   Competiteur?   @relation("UserCompetiteur")
+  passwordReset PasswordReset[]
   @@map("user")
 }
 
 model Role {
-  id        Int         @id @default(autoincrement())
-  name      String      @unique
+  id        Int        @id @default(autoincrement()) @map("id")
+  name      String     @unique                       @map("name")
   userRoles UserRole[]
+  @@map("role")
 }
 
 model UserRole {
-  user   User  @relation(fields: [userId], references: [id])
-  userId Int
-  role   Role  @relation(fields: [roleId], references: [id])
-  roleId Int
-
+  user   User @relation(fields: [userId], references: [id])
+  userId Int  @map("userId")
+  role   Role @relation(fields: [roleId], references: [id])
+  roleId Int  @map("roleId")
   @@id([userId, roleId])
+  @@map("UserRole")
+}
+
+model PasswordReset {
+  id        Int      @id @default(autoincrement()) @map("id")
+  userId    Int      @unique                       @map("userId")
+  token     String   @unique                       @map("token")
+  expiresAt DateTime                             @map("expiresAt")
+  createdAt DateTime       @default(now())         @map("createdAt")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("PasswordReset")
 }

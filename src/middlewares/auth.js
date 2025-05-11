@@ -8,7 +8,8 @@ dotenv.config()
 const JWT_SECRET = process.env.JWT_SECRET || 'change_me'
 
 /**
- * Middleware pour vérifier la présence et la validité du JWT.
+ * Middleware pour vérifier la présence, la validité du JWT,
+ * et s’assurer que le compte est actif et non supprimé.
  * Ajoute `req.user = { userId, roles: string[] }` si OK.
  */
 export async function authenticate(req, res, next) {
@@ -18,25 +19,45 @@ export async function authenticate(req, res, next) {
   }
 
   const token = authHeader.slice(7)
+  let payload
   try {
-    // Vérification du token et extraction du payload
-    const payload = jwt.verify(token, JWT_SECRET)
+    payload = jwt.verify(token, JWT_SECRET)
+  } catch (err) {
+    return res.status(401).json({ message: 'Token invalide' })
+  }
 
-    // Récupère les rôles de l’utilisateur
-    const userRoles = await prisma.userRole.findMany({
-      where: { userId: payload.userId },
-      include: { role: true }
+  try {
+    // 1) On récupère l’utilisateur avec son statut
+    const userRecord = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { id: true, isActive: true, deletedAt: true }
     })
 
-    // On expose userId et roles dans req.user
+    if (!userRecord) {
+      return res.status(401).json({ message: 'Utilisateur introuvable' })
+    }
+
+    // 2) Vérifier qu’il est actif et non supprimé
+    if (!userRecord.isActive || userRecord.deletedAt) {
+      return res.status(403).json({ message: 'Compte inactif ou supprimé' })
+    }
+
+    // 3) Charger les rôles
+    const userRoles = await prisma.userRole.findMany({
+      where: { userId: userRecord.id },
+      include: { role: true }
+    })
+    const roles = userRoles.map(ur => ur.role.name)
+
+    // 4) Exposer l’ID et les rôles
     req.user = {
-      userId: payload.userId,
-      roles: userRoles.map(ur => ur.role.name)
+      userId:     userRecord.id,
+      roles
     }
 
     next()
   } catch (err) {
-    return res.status(401).json({ message: 'Token invalide' })
+    next(err)
   }
 }
 

@@ -1,14 +1,38 @@
-import express from 'express';
-import { createOne, getAll, getOneByID, updateByID, deleteByID } from '../middlewares/crud.js';
-import { validerDonnee } from '../middlewares/verification.js';
+import express from 'express'
+import {
+  createOne,
+  getAll,
+  getOneByID,
+  updateByID,
+  deleteByID
+} from '../middlewares/crud.js'
+import { validerDonnee } from '../middlewares/verification.js'
 
-const router = express.Router();
-const tableName = 'Pays';
+const router = express.Router()
+const tableName = 'pays'  // doit correspondre à ta table « pays »
 
-router.post('/pays', validerDonnee(['countryName', 'alpha3', 'numeric']), createOne(tableName));
-router.get('/pays', getAll(tableName));
-router.get('/pays/:id', getOneByID(tableName));
-router.put('/pays/:id', validerDonnee(['countryName', 'alpha3', 'numeric']), updateByID(tableName));
-router.delete('/pays/:id', deleteByID(tableName));
+// CRUD des pays
+router.post(
+  '/',
+  validerDonnee(['name', 'alpha3', 'numeric']),  // on attend { name, alpha3, numeric }
+  createOne(tableName)
+)
+router.get(
+  '/',
+  getAll(tableName)
+)
+router.get(
+  '/:id',
+  getOneByID(tableName)
+)
+router.put(
+  ':id',
+  validerDonnee(['name', 'alpha3', 'numeric']),
+  updateByID(tableName)
+)
+router.delete(
+  ':id',
+  deleteByID(tableName)
+)
 
-export default router;
+export default router
