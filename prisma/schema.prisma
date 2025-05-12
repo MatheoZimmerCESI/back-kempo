@@ -32,13 +32,13 @@ model Grade {
 }
 
 model Categorie {
-  id       Int       @id @default(autoincrement())         @map("id")
+  id       Int       @id @default(autoincrement())        @map("id")
   nom      String    @map("nom")
   ageMin   Int?      @map("ageMin")
   ageMax   Int?      @map("ageMax")
   poidsMin Float?    @map("poidsMin")
   poidsMax Float?    @map("poidsMax")
-  sexe     String?   @db.Char(30)                          @map("sexe")
+  sexe     String?   @db.Char(30)                         @map("sexe")
   tournois Tournoi[] @relation("CategorieTournois")
   @@map("categorie")
 }
@@ -87,11 +87,8 @@ model Competiteur {
   match1       Match[]     @relation("MatchCompetitor1")
   match2       Match[]     @relation("MatchCompetitor2")
 
-  user         User?       @relation("UserCompetiteur",    fields: [userId],    references: [id])
+  user         User?       @relation("UserCompetiteur", fields: [userId], references: [id])
   userId       Int?        @unique                       @map("userId")
-
-  deletedAt    DateTime?   @map("deletedAt")   // soft-delete flag
-
   @@map("competiteur")
 }
 
@@ -119,11 +116,6 @@ model User {
   password      String         @map("password")
   createdAt     DateTime       @default(now())               @map("createdAt")
   updatedAt     DateTime       @updatedAt                    @map("updatedAt")
-
-  // account status
-  isActive      Boolean        @default(true)                @map("isActive")
-  deletedAt     DateTime?                                   @map("deletedAt")
-
   userRoles     UserRole[]
   competiteur   Competiteur?   @relation("UserCompetiteur")
   passwordReset PasswordReset[]
@@ -150,8 +142,8 @@ model PasswordReset {
   id        Int      @id @default(autoincrement()) @map("id")
   userId    Int      @unique                       @map("userId")
   token     String   @unique                       @map("token")
-  expiresAt DateTime                             @map("expiresAt")
-  createdAt DateTime       @default(now())         @map("createdAt")
+  expiresAt DateTime                           @map("expiresAt")
+  createdAt DateTime       @default(now())       @map("createdAt")
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@map("PasswordReset")
 }

@@ -2,13 +2,39 @@
 import prisma from '../prisma/client.js'
 
 /**
+ * Transforme les données reçues pour coller au schéma Prisma :
+ * - utilise les champs camelCase envoyés par le front
+ * - connecte les relations categorie/pays
+ */
+function transformTournoiData(body) {
+  const {
+    categorieId,
+    countryId,
+    dateDebut,
+    dateFin,
+    ...rest
+  } = body
+
+  return {
+    ...rest,
+    // Prisma attend les clés camelCase
+    dateDebut,
+    dateFin,
+    categorie: { connect: { id: categorieId } },
+    pays:      { connect: { id: countryId } }
+  }
+}
+
+/**
  * Crée un nouvel enregistrement dans le modèle Prisma correspondant.
- * @param {string} modelName Le nom du modèle Prisma (ex. 'club', 'categorie', etc.)
  */
 export function createOne(modelName) {
   return async (req, res, next) => {
     try {
-      const data = req.body
+      let data = { ...req.body }
+      if (modelName === 'tournoi') {
+        data = transformTournoiData(data)
+      }
       const result = await prisma[modelName].create({ data })
       res.status(201).json({ id: result.id })
     } catch (err) {
@@ -54,7 +80,10 @@ export function updateByID(modelName) {
   return async (req, res, next) => {
     try {
       const id = Number(req.params.id)
-      const data = req.body
+      let data = { ...req.body }
+      if (modelName === 'tournoi') {
+        data = transformTournoiData(data)
+      }
       await prisma[modelName].update({
         where: { id },
         data

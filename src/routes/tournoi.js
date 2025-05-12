@@ -29,10 +29,10 @@ router.post(
     'nom',
     'lieu',
     'systemeElimination',
-    'id_categorie',
-    'id_pays',
-    'date_debut',
-    'date_fin'
+    'categorieId',
+    'countryId',
+    'dateDebut',
+    'dateFin'
   ]),
   createOne(tableName)
 )
@@ -46,10 +46,10 @@ router.put(
     'nom',
     'lieu',
     'systemeElimination',
-    'id_categorie',
-    'id_pays',
-    'date_debut',
-    'date_fin'
+    'categorieId',
+    'countryId',
+    'dateDebut',
+    'dateFin'
   ]),
   updateByID(tableName)
 )
