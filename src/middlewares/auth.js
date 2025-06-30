@@ -9,7 +9,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'change_me'
 
 /**
  * Middleware pour vérifier la présence, la validité du JWT,
- * et s’assurer que le compte est actif et non supprimé.
+ * et s’assurer que le compte est actif.
  * Ajoute `req.user = { userId, roles: string[] }` si OK.
  */
 export async function authenticate(req, res, next) {
@@ -30,16 +30,16 @@ export async function authenticate(req, res, next) {
     // 1) On récupère l’utilisateur avec son statut
     const userRecord = await prisma.user.findUnique({
       where: { id: payload.userId },
-      select: { id: true, isActive: true, deletedAt: true }
+      select: { id: true, isActive: true }
     })
 
     if (!userRecord) {
       return res.status(401).json({ message: 'Utilisateur introuvable' })
     }
 
-    // 2) Vérifier qu’il est actif et non supprimé
-    if (!userRecord.isActive || userRecord.deletedAt) {
-      return res.status(403).json({ message: 'Compte inactif ou supprimé' })
+    // 2) Vérifier qu’il est actif
+    if (!userRecord.isActive) {
+      return res.status(403).json({ message: 'Compte inactif' })
     }
 
     // 3) Charger les rôles
@@ -51,7 +51,7 @@ export async function authenticate(req, res, next) {
 
     // 4) Exposer l’ID et les rôles
     req.user = {
-      userId:     userRecord.id,
+      userId: userRecord.id,
       roles
     }
 
