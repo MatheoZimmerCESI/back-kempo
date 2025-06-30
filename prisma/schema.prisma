@@ -116,12 +116,12 @@ model User {
   password      String         @map("password")
   createdAt     DateTime       @default(now())               @map("createdAt")
   updatedAt     DateTime       @updatedAt                    @map("updatedAt")
+  isActive      Boolean        @default(true)                
   userRoles     UserRole[]
   competiteur   Competiteur?   @relation("UserCompetiteur")
   passwordReset PasswordReset[]
   @@map("user")
 }
-
 model Role {
   id        Int        @id @default(autoincrement()) @map("id")
   name      String     @unique                       @map("name")
