@@ -116,8 +116,7 @@ model User {
   password      String         @map("password")
   createdAt     DateTime       @default(now())               @map("createdAt")
   updatedAt     DateTime       @updatedAt                    @map("updatedAt")
-  isActive      Boolean        @default(true)    
-  deletedAt DateTime? @map("deletedAt")            
+  isActive      Boolean        @default(true)           
   userRoles     UserRole[]
   competiteur   Competiteur?   @relation("UserCompetiteur")
   passwordReset PasswordReset[]
