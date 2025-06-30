@@ -57,7 +57,12 @@ router.post('/login', async (req, res, next) => {
     // 1) Recherche de l'utilisateur par email
     const user = await prisma.user.findUnique({
       where: { email },
-      select: { id: true, password: true, isActive: true, deletedAt: true }
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        isActive: true // Supprimé deletedAt
+      }
     })
 
     // 2) Bloquer si compte inexistant OU désactivé/supprimé
